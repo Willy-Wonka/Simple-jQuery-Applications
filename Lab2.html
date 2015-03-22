@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+
+<html>
+    <head>
+        <style>
+            #menu
+            {
+                display: none;
+                position: absolute;
+                height: 25px;
+                width: 120px;
+                /*
+                border-style: solid;
+                border-width: 2px;
+                top: 100px;
+                left: 100px;
+                */
+                z-index: 999999;
+            }
+        </style>
+
+        <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
+    </head>
+
+    <body>
+        <!-- <h1 id = 'me'>Tester</h1> -->
+        <div id='menu'>
+            <button id='yellow' style='display: inline; width: 25px; background-color: Yellow'>Y</button>
+            <button id='red' style='display: inline; width: 25px; background-color: Red'>R</button>
+            <button id='blue' style='display: inline; width: 25px; background-color: Blue'>B</button>
+            <button id='white' style='display: inline; width: 25px; background-color: White'>W</button>
+        </div>
+
+        <p>
+            If you only wanted this to work on select paragraphs, you would change the selector to p.myclass or something like that. This hinges on the fact double clicking a word highlights it in browsers. Not really sure if it's exactly how answers.com does it, to be honest.
+        </p>
+        <p>
+            In Mozilla, Safari and Opera userSelection now is a Selection object, while in Internet Explorer it's a Text Range object. This difference will remain valid for the rest of your script: Internet Explorer's Text Ranges are fundamentally different from Mozilla's Selection and W3C's Range objects, and all other code that you write will require a branch for IE and a branch for all other browsers.
+        </p>
+    </body>
+    
+    <script>
+        //http://code.tutsplus.com/tutorials/build-your-own-javascript-library-part-1--pre-10988
+        // only supports element objects and element ids, not class or element type
+        var turnOn = true;
+        
+        var jsFun = function (id_or_element)
+        {
+            if (typeof id_or_element == 'string' || id_or_element instanceof String)
+                id_or_element = document.getElementById(id_or_element);
+
+            this.tjqObj = new _jsFun_Object(id_or_element);
+
+            return this.tjqObj;
+        };
+    
+        jsFun.version = '0.0.1';
+        
+        jsFun.get = function (attr)
+        {
+            if (attr == 'version')
+                return this.version;
+        }
+
+        function _jsFun_Object(element)
+        {
+            this.element = element;
+            //this.self = this;
+        };
+
+        _jsFun_Object.prototype.ready = function(ft)
+        {
+            if (this.element == document)
+                window.onload = ft;  // should not be document
+            else
+                this.element.onload = ft;
+        };
+
+        _jsFun_Object.prototype.text = function(msg)
+        {
+            if (msg != undefined)
+                this.element.innerHTML = msg;
+            else  // when msg is not passed
+                return this.element.innerHTML;
+        };
+
+        _jsFun_Object.prototype.hide = function()
+        {
+            //alert("in Hide");
+            this.element.style.display = 'none';
+            turnOn = false;
+        };
+
+        _jsFun_Object.prototype.show = function()
+        {
+            //alert("in show");
+            this.element.style.display = 'initial';
+            turnOn = true;
+        };
+
+        _jsFun_Object.prototype.type = function()
+        {
+            if (this.element == window)  // window is set when jsFun(document).
+                return document.doctype.name;
+            else
+                return this.element.nodeName;
+        };
+    
+        _jsFun_Object.prototype.css = function(property, value)
+        {
+            return this.element.style[property] = value;
+        }
+    
+        _jsFun_Object.prototype.bind = function(event, callback_function)
+        {
+            //callback_function = function(event) {self.onclick(event)}
+            if(this.element.addEventListener)
+            {
+                return this.element.addEventListener(event, callback_function, false);
+            }
+            else
+            {
+                return this.element.attachEvent('on' + event, callback_function);
+            }
+        }
+    
+        _jsFun_Object.prototype.click = function(callback_function)
+        {
+            //alert('clicked');
+            return this.element.addEventListener("click", callback_function, false);
+        }
+        
+        _jsFun_Object.prototype.toggle = function()
+        {
+            //alert('switch');
+            if (turnOn)
+            {
+                //alert("off");
+                this.hide();
+            }
+            else
+            {
+                //alert("on");
+                this.show();
+            }
+        }
+        /*
+        changeColor = function(e)
+        {
+            
+            //jsFun(document.getElementById('me')).css('color', 'red');
+            jsFun(document.getElementById("me")).toggle();
+        }
+        jsFun(document).bind("click", changeColor);
+        */
+        //document.addEventListener("click", changeColor);
+        
+        /*
+        *   Use JavaScript and jQuery to Get User Selected Text
+        *       http://mark.koli.ch/use-javascript-and-jquery-to-get-user-selected-text
+        */
+
+        if(!window.Kolich)
+        {
+            Kolich = {};
+        }
+
+        Kolich.Selector = {};
+        Kolich.Selector.getSelected = function()
+        {
+            var t = '';
+            if(window.getSelection)
+            {  // non IE browsers
+                t = window.getSelection();
+            }
+            else if(document.getSelection)
+            {
+                t = document.getSelection();
+            }
+            else if(document.selection)
+            {
+                t = document.selection.createRange().text;
+            }
+            return t;
+        }
+        /*
+        // original
+        Kolich.Selector.mouseup = function()
+        {
+            var st = Kolich.Selector.getSelected();
+            if(st!='')
+            {
+                alert("You selected:\n"+st);
+            }
+        }
+        */
+
+        $(document).ready(function()
+        {
+            jsFun(document).bind("mouseup", Kolich.Selector.mouseup);   // for double click for a word selection and for text selection using mouse dragging
+            jsFun(document).bind("dblclick", Kolich.Selector.dblclick);
+            jsFun(document).bind("click", Kolich.Selector.click);  // for click events
+        });
+        /*
+        Kolich.Selector.mouseup = function(e) // e: mouseup event
+        {
+            if (Kolich.Selector.getSelected() != '')
+                mouseupHandler(e);
+        }
+        */
+        Kolich.Selector.dblclick = function(e)  // e: dblclick event
+        {
+            if (Kolich.Selector.getSelected() != '')
+                dblclickHandler(e);  // You need to implement this.
+        }
+
+        Kolich.Selector.click = function(e)  // e: click event
+        {
+            clickHandler(e);  // You need to implement this.
+        }
+
+        /*
+        *    You need to implement displayMenu() function.
+        */
+
+        function clickHandler(e)  // e: click event
+        {
+            // remove the menu using .css()
+            jsFun(document.getElementById('menu')).css('display', 'none');
+        }
+
+        function dblclickHandler(e)  // e: dblclick event
+        {
+            // display the menu
+            displayMenu(e);
+        }
+        /*
+        function mouseupHandler(e)  // e: mouseup event
+        {
+            // display the menu
+            displayMenu(e);
+            //alert("EE");
+        }
+        */
+        function displayMenu(e)  // e: display Menu
+        {
+            // menu position
+            var x = e.pageX + 'px';  // e.pageX and e.pageY for mouse position
+            var y = (e.pageY - 35) + 'px';  // a bit above
+
+            // display a menu of background color
+            jsFun(document.getElementById('menu')).css('top', y);  // change the position of the menu
+            jsFun(document.getElementById('menu')).css('left', x);
+            jsFun(document.getElementById('menu')).show();  // display the menu
+
+            // register callback functions for yellow, red, blue, white buttons
+            jsFun(document.getElementById('yellow')).click(function() { colorSelected('Yellow'); });  // yellow
+            jsFun(document.getElementById('red')).click(function() { colorSelected('Red'); });  // red
+            jsFun(document.getElementById('blue')).click(function() { colorSelected('Blue'); });  // blue
+            jsFun(document.getElementById('white')).click(function() { colorSelected('White'); });  // white
+        }
+
+        function colorSelected(color)
+        {
+            // remove the menu
+            jsFun(document.getElementById('menu')).css("display", "none");
+
+            // change the color of the selected word
+            var selObj = Kolich.Selector.getSelected();
+            var selRange = selObj.getRangeAt(0);
+            var newElement = document.createElement("span");
+            var documentFragment = selRange.extractContents();
+            newElement.appendChild(documentFragment);
+            newElement.style.setProperty('background-color', color);
+            selRange.insertNode(newElement);
+            selObj.removeAllRanges();
+        }
+    </script>
+</html>
